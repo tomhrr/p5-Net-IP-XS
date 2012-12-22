@@ -212,7 +212,7 @@ __END__
 
 =head1 NAME
 
-Net::IP::XS - XS implementation of Net::IP
+Net::IP::XS - IPv4/IPv6 address library
 
 =head1 SYNOPSIS
 
@@ -232,9 +232,9 @@ Net::IP::XS - XS implementation of Net::IP
 
 =head1 DESCRIPTION
 
-An XS implementation of L<Net::IP|Net::IP>. See L<Net::IP|Net::IP>'s
-documentation (as at version 1.25) for the functions and methods that
-are available.
+An XS (C) implementation of L<Net::IP|Net::IP>. See
+L<Net::IP|Net::IP>'s documentation (as at version 1.25) for the
+functions and methods that are available.
 
 =head1 DIFFERENCES BETWEEN NET::IP AND NET::IP::XS
 
