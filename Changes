@@ -1,5 +1,8 @@
 Revision history for Net-IP-XS
 
+0.10    22 December 2012
+        - Minor text/makefile updates.
+
 0.09    16 May 2012
         - Remove Tie::Hash::Sorted dependency. It was not strictly
           necessary that the hash always be sorted, and it's more in
