@@ -526,7 +526,7 @@ NI_size_str_ipv4(SV *ipo, char *buf)
     begin  = NI_hv_get_uv(ipo, "xs_v4_ip0", 9);
     end    = NI_hv_get_uv(ipo, "xs_v4_ip1", 9);
 
-    if ((begin == 0) && (end = 0xFFFFFFFF)) {
+    if ((begin == 0) && (end == 0xFFFFFFFF)) {
         sprintf(buf, "4294967296");
     } else {
         sprintf(buf, "%lu", end - begin + 1);
