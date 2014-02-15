@@ -1,4 +1,6 @@
 MYMETA.yml
+*.swp
+MYMETA.json
 Makefile
 NetIpXs.c
 NetIpXs.o
