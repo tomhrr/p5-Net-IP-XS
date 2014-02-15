@@ -1,5 +1,8 @@
 Revision history for Net-IP-XS
 
+0.13    15 February 2014
+        - Updated manifest.
+
 0.12    15 February 2014
         - Adjust ip_is_ipv6 so that it rejects truncated addresses.
         - Handle '::' when it is used to shorten a single 16-bit

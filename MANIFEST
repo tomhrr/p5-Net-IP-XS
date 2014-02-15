@@ -53,3 +53,6 @@ t/43-ip-add-num-v4.t
 t/44-ip-add-num-v6.t
 t/45-short.t
 t/46-wrong-object.t
+t/47-object-size.t
+t/48-rt-73232.t
+t/49-rt-92211.t
