@@ -587,6 +587,13 @@ NI_ip_is_ipv6(const char *str)
         return 0;
     }
 
+    /* Doesn't contain '::', though it has fewer than eight segments. */
+
+    if ((octs != 7) && (next_oct == NULL)) {
+        NI_set_Error_Errno(112, "Invalid number of octets %s",  str);
+        return 0;
+    }
+
     return 1;
 }
 
