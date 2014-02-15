@@ -1,5 +1,12 @@
 Revision history for Net-IP-XS
 
+0.12    15 February 2014
+        - Adjust ip_is_ipv6 so that it rejects truncated addresses.
+        - Handle '::' when it is used to shorten a single 16-bit
+          field. (Such an address is technically invalid (RFC 5952
+          [4.2.2]), but this change is in keeping with this module's
+          generally lax approach to parsing.)
+
 0.11    20 June 2013
         - Fix IPv4 object size problem (if a range began at 0.0.0.0,
           size() returned (1 << 32), regardless of the actual size of

@@ -1,7 +1,7 @@
 /*
 n128.c - 128-bit integer.
 
-Copyright (C) 2012 Tom Harrison <tomhrr@cpan.org>
+Copyright (C) 2012-2014 Tom Harrison <tomhrr@cpan.org>
 Original inet_pton4, inet_pton6 are Copyright (C) 2006 Free Software
 Foundation.
 Original interface, and the auth and ip_auth functions, are Copyright
