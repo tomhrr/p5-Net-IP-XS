@@ -56,3 +56,4 @@ t/46-wrong-object.t
 t/47-object-size.t
 t/48-rt-73232.t
 t/49-rt-92211.t
+t/50-rt-102155.t
