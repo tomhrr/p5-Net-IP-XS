@@ -47,12 +47,7 @@ new(package)
         n128_t *num;
     CODE:
         stash = gv_stashpv("Net::IP::XS::N128", 1);
-        num = (n128_t *) malloc(sizeof(n128_t));
-        if (!num) {
-            printf("new: malloc failed!\n");
-            return;
-        }
-        num_ref = newSViv(PTR2IV(num));
+        num_ref = newSV(sizeof(n128_t));
         ref = newRV_noinc(num_ref);
         sv_bless(ref, stash);
         RETVAL = ref;
@@ -69,7 +64,7 @@ set_ui(self, ui)
         if (!sv_isa(self, "Net::IP::XS::N128")) {
             RETVAL = 0;
         } else {
-            num = INT2PTR(n128_t*, SvIV(SvRV(self)));
+            num = (n128_t *)SvPVX(SvRV(self));
             n128_set_ui(num, ui);
             RETVAL = 1;
         }
@@ -86,7 +81,7 @@ set_binstr(self, binstr)
         if (!sv_isa(self, "Net::IP::XS::N128")) {
             RETVAL = 0;
         } else {
-            num = INT2PTR(n128_t*, SvIV(SvRV(self)));
+            num = (n128_t *)SvPVX(SvRV(self));
             n128_set_str_binary(num, binstr, strlen(binstr));
             RETVAL = 1;
         }
@@ -103,7 +98,7 @@ set_decstr(self, decstr)
         if (!sv_isa(self, "Net::IP::XS::N128")) {
             RETVAL = 0;
         } else {
-            num = INT2PTR(n128_t*, SvIV(SvRV(self)));
+            num = (n128_t *)SvPVX(SvRV(self));
             n128_set_str_decimal(num, decstr, strlen(decstr));
             RETVAL = 1;
         }
@@ -120,7 +115,7 @@ cmp_ui(self, ui)
         if (!sv_isa(self, "Net::IP::XS::N128")) {
             RETVAL = 0;
         } else {
-            num = INT2PTR(n128_t*, SvIV(SvRV(self)));
+            num = (n128_t *)SvPVX(SvRV(self));
             RETVAL = n128_cmp_ui(num, ui);
         }
     OUTPUT:
@@ -138,8 +133,8 @@ cmp(self, other)
          || !sv_isa(other, "Net::IP::XS::N128")) {
             RETVAL = 0;
         } else {
-            num1 = INT2PTR(n128_t*, SvIV(SvRV(self)));
-            num2 = INT2PTR(n128_t*, SvIV(SvRV(other)));
+            num1 = (n128_t *)SvPVX(SvRV(self));
+            num2 = (n128_t *)SvPVX(SvRV(other));
             RETVAL = n128_cmp(num1, num2);
         }
     OUTPUT:
@@ -155,7 +150,7 @@ blsft(self, shift)
         if (!sv_isa(self, "Net::IP::XS::N128")) {
             RETVAL = 0;
         } else {
-            num = INT2PTR(n128_t*, SvIV(SvRV(self)));
+            num = (n128_t *)SvPVX(SvRV(self));
             n128_blsft(num, shift);
             RETVAL = 1;
         }
@@ -172,7 +167,7 @@ brsft(self, shift)
         if (!sv_isa(self, "Net::IP::XS::N128")) {
             RETVAL = 0;
         } else {
-            num = INT2PTR(n128_t*, SvIV(SvRV(self)));
+            num = (n128_t *)SvPVX(SvRV(self));
             n128_brsft(num, shift);
             RETVAL = 1;
         }
@@ -191,8 +186,8 @@ band(self, other)
          || !sv_isa(other, "Net::IP::XS::N128")) {
             RETVAL = 0;
         } else {
-            num1 = INT2PTR(n128_t*, SvIV(SvRV(self)));
-            num2 = INT2PTR(n128_t*, SvIV(SvRV(other)));
+            num1 = (n128_t *)SvPVX(SvRV(self));
+            num2 = (n128_t *)SvPVX(SvRV(other));
             n128_and(num1, num2);
             RETVAL = 1;
         }
@@ -211,8 +206,8 @@ bior(self, other)
          || !sv_isa(other, "Net::IP::XS::N128")) {
             RETVAL = 0;
         } else {
-            num1 = INT2PTR(n128_t*, SvIV(SvRV(self)));
-            num2 = INT2PTR(n128_t*, SvIV(SvRV(other)));
+            num1 = (n128_t *)SvPVX(SvRV(self));
+            num2 = (n128_t *)SvPVX(SvRV(other));
             n128_ior(num1, num2);
             RETVAL = 1;
         }
@@ -231,8 +226,8 @@ bxor(self, other)
          || !sv_isa(other, "Net::IP::XS::N128")) {
             RETVAL = 0;
         } else {
-            num1 = INT2PTR(n128_t*, SvIV(SvRV(self)));
-            num2 = INT2PTR(n128_t*, SvIV(SvRV(other)));
+            num1 = (n128_t *)SvPVX(SvRV(self));
+            num2 = (n128_t *)SvPVX(SvRV(other));
             n128_xor(num1, num2);
             RETVAL = 1;
         }
@@ -251,8 +246,8 @@ badd(self, other)
          || !sv_isa(other, "Net::IP::XS::N128")) {
             RETVAL = 0;
         } else {
-            num1 = INT2PTR(n128_t*, SvIV(SvRV(self)));
-            num2 = INT2PTR(n128_t*, SvIV(SvRV(other)));
+            num1 = (n128_t *)SvPVX(SvRV(self));
+            num2 = (n128_t *)SvPVX(SvRV(other));
             n128_add(num1, num2);
             RETVAL = 1;
         }
@@ -271,8 +266,8 @@ bsub(self, other)
          || !sv_isa(other, "Net::IP::XS::N128")) {
             RETVAL = 0;
         } else {
-            num1 = INT2PTR(n128_t*, SvIV(SvRV(self)));
-            num2 = INT2PTR(n128_t*, SvIV(SvRV(other)));
+            num1 = (n128_t *)SvPVX(SvRV(self));
+            num2 = (n128_t *)SvPVX(SvRV(other));
             n128_sub(num1, num2);
             RETVAL = 1;
         }
@@ -289,7 +284,7 @@ badd_ui(self, ui)
         if (!sv_isa(self,  "Net::IP::XS::N128")) {
             RETVAL = 0;
         } else {
-            num = INT2PTR(n128_t*, SvIV(SvRV(self)));
+            num = (n128_t *)SvPVX(SvRV(self));
             n128_add_ui(num, ui);
             RETVAL = 1;
         }
@@ -305,7 +300,7 @@ bnot(self)
         if (!sv_isa(self,  "Net::IP::XS::N128")) {
             RETVAL = 0;
         } else {
-            num = INT2PTR(n128_t*, SvIV(SvRV(self)));
+            num = (n128_t *)SvPVX(SvRV(self));
             n128_com(num);
             RETVAL = 1;
         }
@@ -322,7 +317,7 @@ tstbit(self, bit)
         if (!sv_isa(self,  "Net::IP::XS::N128")) {
             RETVAL = 0;
         } else {
-            num = INT2PTR(n128_t*, SvIV(SvRV(self)));
+            num = (n128_t *)SvPVX(SvRV(self));
             RETVAL = n128_tstbit(num, bit);
         }
     OUTPUT:
@@ -338,7 +333,7 @@ setbit(self, bit)
         if (!sv_isa(self,  "Net::IP::XS::N128")) {
             RETVAL = 0;
         } else {
-            num = INT2PTR(n128_t*, SvIV(SvRV(self)));
+            num = (n128_t *)SvPVX(SvRV(self));
             n128_setbit(num, bit);
             RETVAL = 1;
         }
@@ -355,7 +350,7 @@ clrbit(self, bit)
         if (!sv_isa(self,  "Net::IP::XS::N128")) {
             RETVAL = 0;
         } else {
-            num = INT2PTR(n128_t*, SvIV(SvRV(self)));
+            num = (n128_t *)SvPVX(SvRV(self));
             n128_clrbit(num, bit);
             RETVAL = 1;
         }
@@ -372,7 +367,7 @@ bstr(self)
         if (!sv_isa(self, "Net::IP::XS::N128")) {
             RETVAL = &PL_sv_undef;
         } else {
-            num = INT2PTR(n128_t*, SvIV(SvRV(self)));
+            num = (n128_t *)SvPVX(SvRV(self));
             n128_print_dec(num, buf);
             RETVAL = newSVpv(buf, 0);
         }
@@ -389,24 +384,12 @@ as_hex(self)
         if (!sv_isa(self, "Net::IP::XS::N128")) {
             RETVAL = &PL_sv_undef;
         } else {
-            num = INT2PTR(n128_t*, SvIV(SvRV(self)));
+            num = (n128_t *)SvPVX(SvRV(self));
             n128_print_hex(num, buf);
             RETVAL = newSVpv(buf, 0);
         }
     OUTPUT:
         RETVAL
-
-void
-DESTROY(self)
-        SV *self
-    PREINIT:
-        n128_t *num;
-    CODE:
-        if (sv_isa(self, "Net::IP::XS::N128")
-                && SvTYPE(SvRV(self)) == SVt_PVMG) {
-            num = INT2PTR(n128_t*, SvIV(SvRV(self)));
-            free(num);
-        }
 
 MODULE = Net::IP::XS        PACKAGE = Net::IP::XS
 
