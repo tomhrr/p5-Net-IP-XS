@@ -1,5 +1,9 @@
 Revision history for Net-IP-XS
 
+0.14    17 February 2015
+        - Update internal n128 handling so that IP objects can be used
+          in conjunction with threads.
+
 0.13    15 February 2014
         - Updated manifest.
 
