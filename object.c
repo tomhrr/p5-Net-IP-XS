@@ -122,46 +122,39 @@ NI_find_prefixes(SV *ipo, char **prefixes, int *pcount)
 int
 NI_set_ipv6_n128s(SV *ipo)
 {
-    n128_t *ipv6_begin;
-    n128_t *ipv6_end;
-    HV *stash;
-    SV *ref1;
-    SV *ref2;
-    SV *ipv6_begin_ref;
-    SV *ipv6_end_ref;
+    n128_t ipv6_begin;
+    n128_t ipv6_end;
     const char *binbuf1;
     const char *binbuf2;
 
     HV_PV_GET_OR_RETURN(binbuf1, ipo, "binip",    5);
     HV_PV_GET_OR_RETURN(binbuf2, ipo, "last_bin", 8);
 
-    stash = gv_stashpv("Net::IP::XS::N128", 1);
+    n128_set_str_binary(&ipv6_begin, binbuf1, 128);
+    n128_set_str_binary(&ipv6_end,   binbuf2, 128);
 
-    ipv6_begin = (n128_t *) malloc(sizeof(n128_t));
-    if (!ipv6_begin) {
-        printf("set: malloc failed!\n");
-        return 0;
-    }
-    ipv6_end = (n128_t *) malloc(sizeof(n128_t));
-    if (!ipv6_end) {
-        printf("set: malloc failed!\n");
-        return 0;
-    }
+    /* todo: Previously, this part of the code used malloc to allocate
+     * n128_ts, which were then stored within the Net::IP::XS object.
+     * This didn't work properly when threads were in use, because
+     * those raw pointers were copied to each new thread, and
+     * consequently freed by each thread in DESTROY.  This now stores
+     * the individual numbers within the object.  This,
+     * NI_get_begin_n128 and NI_get_end_n128 could do with some
+     * tidying (SvPV as per the ticket, and avoiding sprintf), and
+     * there are also a number of functions that copy the n128 values,
+     * which is no longer necessary.  See
+     * https://rt.cpan.org/Ticket/Display.html?id=102155 for more
+     * information. */
 
-    n128_set_str_binary(ipv6_begin, binbuf1, 128);
-    n128_set_str_binary(ipv6_end,   binbuf2, 128);
+    hv_store((HV*) SvRV(ipo), "xs_v6_ip0_0", 11, newSVuv(ipv6_begin.nums[0]), 0);
+    hv_store((HV*) SvRV(ipo), "xs_v6_ip0_1", 11, newSVuv(ipv6_begin.nums[1]), 0);
+    hv_store((HV*) SvRV(ipo), "xs_v6_ip0_2", 11, newSVuv(ipv6_begin.nums[2]), 0);
+    hv_store((HV*) SvRV(ipo), "xs_v6_ip0_3", 11, newSVuv(ipv6_begin.nums[3]), 0);
 
-    ipv6_begin_ref = newSViv(PTR2IV(ipv6_begin));
-    ipv6_end_ref   = newSViv(PTR2IV(ipv6_end));
-
-    ref1 = newRV_noinc(ipv6_begin_ref);
-    ref2 = newRV_noinc(ipv6_end_ref);
-
-    sv_bless(ref1, stash);
-    sv_bless(ref2, stash);
-
-    hv_store((HV*) SvRV(ipo), "xs_v6_ip0", 9, ref1, 0);
-    hv_store((HV*) SvRV(ipo), "xs_v6_ip1", 9, ref2, 0);
+    hv_store((HV*) SvRV(ipo), "xs_v6_ip1_0", 11, newSVuv(ipv6_end.nums[0]), 0);
+    hv_store((HV*) SvRV(ipo), "xs_v6_ip1_1", 11, newSVuv(ipv6_end.nums[1]), 0);
+    hv_store((HV*) SvRV(ipo), "xs_v6_ip1_2", 11, newSVuv(ipv6_end.nums[2]), 0);
+    hv_store((HV*) SvRV(ipo), "xs_v6_ip1_3", 11, newSVuv(ipv6_end.nums[3]), 0);
 
     return 1;
 }
@@ -339,16 +332,20 @@ NI_set(SV* ipo, char *data, int ipversion)
  * the IPv6 object.
  */
 int
-NI_get_begin_n128(SV *ipo, n128_t **begin)
+NI_get_begin_n128(SV *ipo, n128_t *begin)
 {
     SV **ref;
+    int i;
+    char buf[12];
 
-    ref = hv_fetch((HV*) SvRV(ipo), "xs_v6_ip0", 9, 0);
-    if (!ref || !(*ref) || !SvROK(*ref) 
-             || !sv_isa(*ref, "Net::IP::XS::N128")) {
-        return 0;
+    for (i = 0; i < 4; i++) {
+        sprintf(buf, "xs_v6_ip0_%d", i);
+        ref = hv_fetch((HV*) SvRV(ipo), buf, 11, 0);
+        if (!ref || !(*ref)) {
+            return 0;
+        }
+        begin->nums[i] = SvUV(*ref);
     }
-    *begin = INT2PTR(n128_t*, SvUV(SvRV(*ref)));
 
     return 1;
 }
@@ -362,16 +359,20 @@ NI_get_begin_n128(SV *ipo, n128_t **begin)
  * IPv6 object.
  */
 int
-NI_get_end_n128(SV *ipo, n128_t **end)
+NI_get_end_n128(SV *ipo, n128_t *end)
 {
     SV **ref;
+    int i;
+    char buf[12];
 
-    ref = hv_fetch((HV*) SvRV(ipo), "xs_v6_ip1", 9, 0);
-    if (!ref || !(*ref) || !SvROK(*ref) 
-             || !sv_isa(*ref, "Net::IP::XS::N128")) {
-        return 0;
+    for (i = 0; i < 4; i++) {
+        sprintf(buf, "xs_v6_ip1_%d", i);
+        ref = hv_fetch((HV*) SvRV(ipo), buf, 11, 0);
+        if (!ref || !(*ref)) {
+            return 0;
+        }
+        end->nums[i] = SvUV(*ref);
     }
-    *end = INT2PTR(n128_t*, SvUV(SvRV(*ref)));
 
     return 1;
 }
@@ -385,7 +386,7 @@ NI_get_end_n128(SV *ipo, n128_t **end)
  * See NI_get_begin_n128() and NI_get_end_n128().
  */
 int
-NI_get_n128s(SV *ipo, n128_t **begin, n128_t **end)
+NI_get_n128s(SV *ipo, n128_t *begin, n128_t *end)
 {
     return    NI_get_begin_n128(ipo, begin)
            && NI_get_end_n128(ipo, end);
@@ -405,7 +406,7 @@ NI_short(SV *ipo, char *buf)
     int prefixlen;
     int res;
     const char *ipstr;
-    
+
     version = NI_hv_get_iv(ipo, "ipversion", 9);
     ipstr   = NI_hv_get_pv(ipo, "ip", 2);
     if (!ipstr) {
@@ -543,8 +544,8 @@ NI_size_str_ipv4(SV *ipo, char *buf)
 int
 NI_size_str_ipv6(SV *ipo, char *buf)
 {
-    n128_t *begin;
-    n128_t *end;
+    n128_t begin;
+    n128_t end;
     n128_t end_copy;
     int res;
 
@@ -553,14 +554,14 @@ NI_size_str_ipv6(SV *ipo, char *buf)
         return 0;
     }
 
-    if (   n128_scan1(begin) == INT_MAX
-        && n128_scan0(end)   == INT_MAX) {
+    if (   n128_scan1(&begin) == INT_MAX
+        && n128_scan0(&end)   == INT_MAX) {
         sprintf(buf, "340282366920938463463374607431768211456");
         return 1;
     }
 
-    n128_set(&end_copy, end);
-    n128_sub(&end_copy, begin);
+    n128_set(&end_copy, &end);
+    n128_sub(&end_copy, &begin);
     n128_add_ui(&end_copy, 1);
     n128_print_dec(&end_copy, buf);
 
@@ -605,13 +606,13 @@ NI_intip_str_ipv4(SV *ipo, char *buf)
 int
 NI_intip_str_ipv6(SV *ipo, char *buf)
 {
-    n128_t *begin;
+    n128_t begin;
 
     if (!NI_get_begin_n128(ipo, &begin)) {
         return 0;
     }
 
-    n128_print_dec(begin, buf);
+    n128_print_dec(&begin, buf);
 
     return 1;
 }
@@ -671,13 +672,13 @@ NI_hexip_ipv4(SV *ipo, char *buf)
 int
 NI_hexip_ipv6(SV *ipo, char *hexip)
 {
-    n128_t *begin;
+    n128_t begin;
 
     if (!NI_get_begin_n128(ipo, &begin)) {
         return 0;
     }
 
-    n128_print_hex(begin, hexip);
+    n128_print_hex(&begin, hexip);
 
     return 1;
 }
@@ -769,7 +770,7 @@ NI_prefix(SV *ipo, char *buf, int maxlen)
 
     is_prefix = NI_hv_get_iv(ipo, "is_prefix", 9);
     if (!is_prefix) {
-        NI_object_set_Error_Errno(ipo, 209, "IP range %s is not a Prefix.", 
+        NI_object_set_Error_Errno(ipo, 209, "IP range %s is not a Prefix.",
                                   ip);
         return 0;
     }
@@ -812,7 +813,7 @@ NI_mask(SV *ipo, char *buf, int maxlen)
             ip = "";
         }
 
-        NI_object_set_Error_Errno(ipo, 209, "IP range %s is not a Prefix.", 
+        NI_object_set_Error_Errno(ipo, 209, "IP range %s is not a Prefix.",
                                   ip);
         return 0;
     }
@@ -900,7 +901,7 @@ NI_reverse_ip(SV *ipo, char *buf)
     }
 
     if (!NI_hv_get_iv(ipo, "is_prefix", 9)) {
-        NI_object_set_Error_Errno(ipo, 209, "IP range %s is not a Prefix.", 
+        NI_object_set_Error_Errno(ipo, 209, "IP range %s is not a Prefix.",
                                   ip);
         return 0;
     }
@@ -992,13 +993,13 @@ int NI_last_int_str_ipv4(SV *ipo, char *buf)
  */
 int NI_last_int_str_ipv6(SV *ipo, char *buf)
 {
-    n128_t *end;
+    n128_t end;
 
     if (!NI_get_end_n128(ipo, &end)) {
         return 0;
     }
 
-    n128_print_dec(end, buf);
+    n128_print_dec(&end, buf);
 
     return 1;
 }
@@ -1140,7 +1141,7 @@ NI_aggregate_ipv4(SV *ipo1, SV *ipo2, char *buf)
     const char *ip1;
     const char *ip2;
     int res;
-    
+
     b1 = NI_hv_get_uv(ipo1, "xs_v4_ip0", 9);
     e1 = NI_hv_get_uv(ipo1, "xs_v4_ip1", 9);
     b2 = NI_hv_get_uv(ipo2, "xs_v4_ip0", 9);
@@ -1160,7 +1161,7 @@ NI_aggregate_ipv4(SV *ipo1, SV *ipo2, char *buf)
         if (!ip2) {
             ip2 = "";
         }
-        NI_set_Error_Errno(160, "Ranges not contiguous - %s - %s", 
+        NI_set_Error_Errno(160, "Ranges not contiguous - %s - %s",
                            ip1, ip2);
         NI_copy_Error_Errno(ipo1);
         return 0;
@@ -1174,7 +1175,7 @@ NI_aggregate_ipv4(SV *ipo1, SV *ipo2, char *buf)
         if (!ip2) {
             ip2 = "";
         }
-        NI_set_Error_Errno(161, "%s - %s is not a single prefix", 
+        NI_set_Error_Errno(161, "%s - %s is not a single prefix",
                            ip1, ip2);
         NI_copy_Error_Errno(ipo1);
         return 0;
@@ -1191,10 +1192,10 @@ NI_aggregate_ipv4(SV *ipo1, SV *ipo2, char *buf)
 int
 NI_aggregate_ipv6(SV *ipo1, SV *ipo2, char *buf)
 {
-    n128_t *b1_ref;
-    n128_t *e1_ref;
-    n128_t *b2_ref;
-    n128_t *e2_ref;
+    n128_t b1_ref;
+    n128_t e1_ref;
+    n128_t b2_ref;
+    n128_t e2_ref;
     n128_t b1;
     n128_t e1;
     n128_t b2;
@@ -1210,13 +1211,13 @@ NI_aggregate_ipv6(SV *ipo1, SV *ipo2, char *buf)
         return 0;
     }
 
-    n128_set(&b1, b1_ref);
-    n128_set(&e1, e1_ref);
-    n128_set(&b2, b2_ref);
-    n128_set(&e2, e2_ref);
+    n128_set(&b1, &b1_ref);
+    n128_set(&e1, &e1_ref);
+    n128_set(&b2, &b2_ref);
+    n128_set(&e2, &e2_ref);
 
     res = NI_ip_aggregate_ipv6(&b1, &e1, &b2, &e2, 6, buf);
-    
+
     if (res == 0) {
         NI_copy_Error_Errno(ipo1);
         return 0;
@@ -1230,7 +1231,7 @@ NI_aggregate_ipv6(SV *ipo1, SV *ipo2, char *buf)
         if (!ip2) {
             ip2 = "";
         }
-        NI_set_Error_Errno(160, "Ranges not contiguous - %s - %s", 
+        NI_set_Error_Errno(160, "Ranges not contiguous - %s - %s",
                            ip1, ip2);
         NI_copy_Error_Errno(ipo1);
         return 0;
@@ -1244,7 +1245,7 @@ NI_aggregate_ipv6(SV *ipo1, SV *ipo2, char *buf)
         if (!ip2) {
             ip2 = "";
         }
-        NI_set_Error_Errno(161, "%s - %s is not a single prefix", 
+        NI_set_Error_Errno(161, "%s - %s is not a single prefix",
                            ip1, ip2);
         NI_copy_Error_Errno(ipo1);
         return 0;
@@ -1303,7 +1304,7 @@ NI_overlaps_ipv4(SV *ipo1, SV *ipo2, int *buf)
     unsigned long b2;
     unsigned long e1;
     unsigned long e2;
-    
+
     b1 = NI_hv_get_uv(ipo1, "xs_v4_ip0", 9);
     e1 = NI_hv_get_uv(ipo1, "xs_v4_ip1", 9);
     b2 = NI_hv_get_uv(ipo2, "xs_v4_ip0", 9);
@@ -1323,10 +1324,10 @@ NI_overlaps_ipv4(SV *ipo1, SV *ipo2, int *buf)
 int
 NI_overlaps_ipv6(SV *ipo1, SV *ipo2, int *buf)
 {
-    n128_t *b1;
-    n128_t *e1;
-    n128_t *b2;
-    n128_t *e2;
+    n128_t b1;
+    n128_t e1;
+    n128_t b2;
+    n128_t e2;
 
     if (!NI_get_n128s(ipo1, &b1, &e1)) {
         return 0;
@@ -1335,7 +1336,7 @@ NI_overlaps_ipv6(SV *ipo1, SV *ipo2, int *buf)
         return 0;
     }
 
-    NI_ip_is_overlap_ipv6(b1, e1, b2, e2, buf);
+    NI_ip_is_overlap_ipv6(&b1, &e1, &b2, &e2, buf);
 
     return 1;
 }
@@ -1380,7 +1381,7 @@ NI_ip_add_num_ipv4(SV *ipo, unsigned long num, char *buf)
     if ((begin + num) > end) {
         return 0;
     }
-    
+
     begin += num;
     NI_ip_inttoip_ipv4(begin, buf);
     len = strlen(buf);
@@ -1399,8 +1400,8 @@ NI_ip_add_num_ipv4(SV *ipo, unsigned long num, char *buf)
 int
 NI_ip_add_num_ipv6(SV *ipo, n128_t *num, char *buf)
 {
-    n128_t *begin;
-    n128_t *end;
+    n128_t begin;
+    n128_t end;
     int len;
     int res;
 
@@ -1408,20 +1409,20 @@ NI_ip_add_num_ipv6(SV *ipo, n128_t *num, char *buf)
         return 0;
     }
 
-    res = n128_add(num, begin);
+    res = n128_add(num, &begin);
     if (!res) {
         return 0;
     }
     if (   (n128_scan1(num) == INT_MAX)
-        || (n128_cmp(num, begin) <= 0) 
-        || (n128_cmp(num, end) > 0)) {
+        || (n128_cmp(num, &begin) <= 0)
+        || (n128_cmp(num, &end) > 0)) {
         return 0;
     }
 
     NI_ip_inttoip_n128(num, buf);
     len = strlen(buf);
     sprintf(buf + len, " - ");
-    NI_ip_inttoip_n128(end, buf + len + 3);
+    NI_ip_inttoip_n128(&end, buf + len + 3);
 
     return 1;
 }
