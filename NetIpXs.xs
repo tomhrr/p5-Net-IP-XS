@@ -44,15 +44,11 @@ new(package)
         HV *stash;
         SV *ref;
         SV *num_ref;
-        n128_t *num;
+        n128_t num;
     CODE:
         stash = gv_stashpv("Net::IP::XS::N128", 1);
-        num = (n128_t *) malloc(sizeof(n128_t));
-        if (!num) {
-            printf("new: malloc failed!\n");
-            return;
-        }
-        num_ref = newSViv(PTR2IV(num));
+        n128_set_ui(&num, 0);
+        num_ref = newSVpv((const char*) &num, 16);
         ref = newRV_noinc(num_ref);
         sv_bless(ref, stash);
         RETVAL = ref;
@@ -64,83 +60,91 @@ set_ui(self, ui)
         SV *self
         unsigned int ui
     PREINIT:
-        n128_t *num;
+        STRLEN len;
+        n128_t num;
     CODE:
         if (!sv_isa(self, "Net::IP::XS::N128")) {
             RETVAL = 0;
         } else {
-            num = INT2PTR(n128_t*, SvIV(SvRV(self)));
-            n128_set_ui(num, ui);
+            Copy(SvPV(SvRV(self), len), &num, 1, n128_t);
+            n128_set_ui(&num, ui);
+            sv_setpvn(SvRV(self), (const char*) &num, 16);
             RETVAL = 1;
         }
     OUTPUT:
-        RETVAL 
+        RETVAL
 
 int
 set_binstr(self, binstr)
         SV *self
         const char *binstr
     PREINIT:
-        n128_t *num;
+        STRLEN len;
+        n128_t num;
     CODE:
         if (!sv_isa(self, "Net::IP::XS::N128")) {
             RETVAL = 0;
         } else {
-            num = INT2PTR(n128_t*, SvIV(SvRV(self)));
-            n128_set_str_binary(num, binstr, strlen(binstr));
+            Copy(SvPV(SvRV(self), len), &num, 1, n128_t);
+            n128_set_str_binary(&num, binstr, strlen(binstr));
+            sv_setpvn(SvRV(self), (const char*) &num, 16);
             RETVAL = 1;
         }
     OUTPUT:
-        RETVAL 
+        RETVAL
 
 int
 set_decstr(self, decstr)
         SV *self
         const char *decstr
     PREINIT:
-        n128_t *num;
+        STRLEN len;
+        n128_t num;
     CODE:
         if (!sv_isa(self, "Net::IP::XS::N128")) {
             RETVAL = 0;
         } else {
-            num = INT2PTR(n128_t*, SvIV(SvRV(self)));
-            n128_set_str_decimal(num, decstr, strlen(decstr));
+            Copy(SvPV(SvRV(self), len), &num, 1, n128_t);
+            n128_set_str_decimal(&num, decstr, strlen(decstr));
+            sv_setpvn(SvRV(self), (const char*) &num, 16);
             RETVAL = 1;
         }
     OUTPUT:
-        RETVAL 
+        RETVAL
 
 int
 cmp_ui(self, ui)
         SV *self
         unsigned int ui
     PREINIT:
-        n128_t *num;
+        STRLEN len;
+        n128_t num;
     CODE:
         if (!sv_isa(self, "Net::IP::XS::N128")) {
             RETVAL = 0;
         } else {
-            num = INT2PTR(n128_t*, SvIV(SvRV(self)));
-            RETVAL = n128_cmp_ui(num, ui);
+            Copy(SvPV(SvRV(self), len), &num, 1, n128_t);
+            RETVAL = n128_cmp_ui(&num, ui);
         }
     OUTPUT:
-        RETVAL 
+        RETVAL
 
 int
 cmp(self, other)
         SV *self
         SV *other
     PREINIT:
-        n128_t *num1;
-        n128_t *num2;
+        STRLEN len;
+        n128_t num1;
+        n128_t num2;
     CODE:
-        if (!sv_isa(self,  "Net::IP::XS::N128") 
+        if (!sv_isa(self,  "Net::IP::XS::N128")
          || !sv_isa(other, "Net::IP::XS::N128")) {
             RETVAL = 0;
         } else {
-            num1 = INT2PTR(n128_t*, SvIV(SvRV(self)));
-            num2 = INT2PTR(n128_t*, SvIV(SvRV(other)));
-            RETVAL = n128_cmp(num1, num2);
+            Copy(SvPV(SvRV(self),  len), &num1, 1, n128_t);
+            Copy(SvPV(SvRV(other), len), &num2, 1, n128_t);
+            RETVAL = n128_cmp(&num1, &num2);
         }
     OUTPUT:
         RETVAL
@@ -150,50 +154,56 @@ blsft(self, shift)
         SV *self
         int shift
     PREINIT:
-        n128_t *num;
+        STRLEN len;
+        n128_t num;
     CODE:
         if (!sv_isa(self, "Net::IP::XS::N128")) {
             RETVAL = 0;
         } else {
-            num = INT2PTR(n128_t*, SvIV(SvRV(self)));
-            n128_blsft(num, shift);
+            Copy(SvPV(SvRV(self), len), &num, 1, n128_t);
+            n128_blsft(&num, shift);
+            sv_setpvn(SvRV(self), (const char*) &num, 16);
             RETVAL = 1;
         }
     OUTPUT:
-        RETVAL 
+        RETVAL
 
 int
 brsft(self, shift)
         SV *self
         int shift
     PREINIT:
-        n128_t *num;
+        STRLEN len;
+        n128_t num;
     CODE:
         if (!sv_isa(self, "Net::IP::XS::N128")) {
             RETVAL = 0;
         } else {
-            num = INT2PTR(n128_t*, SvIV(SvRV(self)));
-            n128_brsft(num, shift);
+            Copy(SvPV(SvRV(self), len), &num, 1, n128_t);
+            n128_brsft(&num, shift);
+            sv_setpvn(SvRV(self), (const char*) &num, 16);
             RETVAL = 1;
         }
     OUTPUT:
-        RETVAL 
+        RETVAL
 
 int
 band(self, other)
         SV *self
         SV *other
     PREINIT:
-        n128_t *num1;
-        n128_t *num2;
+        STRLEN len;
+        n128_t num1;
+        n128_t num2;
     CODE:
-        if (!sv_isa(self,  "Net::IP::XS::N128") 
+        if (!sv_isa(self,  "Net::IP::XS::N128")
          || !sv_isa(other, "Net::IP::XS::N128")) {
             RETVAL = 0;
         } else {
-            num1 = INT2PTR(n128_t*, SvIV(SvRV(self)));
-            num2 = INT2PTR(n128_t*, SvIV(SvRV(other)));
-            n128_and(num1, num2);
+            Copy(SvPV(SvRV(self),  len), &num1, 1, n128_t);
+            Copy(SvPV(SvRV(other), len), &num2, 1, n128_t);
+            n128_and(&num1, &num2);
+            sv_setpvn(SvRV(self), (const char*) &num1, 16);
             RETVAL = 1;
         }
     OUTPUT:
@@ -204,16 +214,18 @@ bior(self, other)
         SV *self
         SV *other
     PREINIT:
-        n128_t *num1;
-        n128_t *num2;
+        STRLEN len;
+        n128_t num1;
+        n128_t num2;
     CODE:
-        if (!sv_isa(self,  "Net::IP::XS::N128") 
+        if (!sv_isa(self,  "Net::IP::XS::N128")
          || !sv_isa(other, "Net::IP::XS::N128")) {
             RETVAL = 0;
         } else {
-            num1 = INT2PTR(n128_t*, SvIV(SvRV(self)));
-            num2 = INT2PTR(n128_t*, SvIV(SvRV(other)));
-            n128_ior(num1, num2);
+            Copy(SvPV(SvRV(self),  len), &num1, 1, n128_t);
+            Copy(SvPV(SvRV(other), len), &num2, 1, n128_t);
+            n128_ior(&num1, &num2);
+            sv_setpvn(SvRV(self), (const char*) &num1, 16);
             RETVAL = 1;
         }
     OUTPUT:
@@ -224,16 +236,18 @@ bxor(self, other)
         SV *self
         SV *other
     PREINIT:
-        n128_t *num1;
-        n128_t *num2;
+        STRLEN len;
+        n128_t num1;
+        n128_t num2;
     CODE:
-        if (!sv_isa(self,  "Net::IP::XS::N128") 
+        if (!sv_isa(self,  "Net::IP::XS::N128")
          || !sv_isa(other, "Net::IP::XS::N128")) {
             RETVAL = 0;
         } else {
-            num1 = INT2PTR(n128_t*, SvIV(SvRV(self)));
-            num2 = INT2PTR(n128_t*, SvIV(SvRV(other)));
-            n128_xor(num1, num2);
+            Copy(SvPV(SvRV(self),  len), &num1, 1, n128_t);
+            Copy(SvPV(SvRV(other), len), &num2, 1, n128_t);
+            n128_xor(&num1, &num2);
+            sv_setpvn(SvRV(self), (const char*) &num1, 16);
             RETVAL = 1;
         }
     OUTPUT:
@@ -244,16 +258,18 @@ badd(self, other)
         SV *self
         SV *other
     PREINIT:
-        n128_t *num1;
-        n128_t *num2;
+        STRLEN len;
+        n128_t num1;
+        n128_t num2;
     CODE:
-        if (!sv_isa(self,  "Net::IP::XS::N128") 
+        if (!sv_isa(self,  "Net::IP::XS::N128")
          || !sv_isa(other, "Net::IP::XS::N128")) {
             RETVAL = 0;
         } else {
-            num1 = INT2PTR(n128_t*, SvIV(SvRV(self)));
-            num2 = INT2PTR(n128_t*, SvIV(SvRV(other)));
-            n128_add(num1, num2);
+            Copy(SvPV(SvRV(self),  len), &num1, 1, n128_t);
+            Copy(SvPV(SvRV(other), len), &num2, 1, n128_t);
+            n128_add(&num1, &num2);
+            sv_setpvn(SvRV(self), (const char*) &num1, 16);
             RETVAL = 1;
         }
     OUTPUT:
@@ -264,16 +280,18 @@ bsub(self, other)
         SV *self
         SV *other
     PREINIT:
-        n128_t *num1;
-        n128_t *num2;
+        STRLEN len;
+        n128_t num1;
+        n128_t num2;
     CODE:
-        if (!sv_isa(self,  "Net::IP::XS::N128") 
+        if (!sv_isa(self,  "Net::IP::XS::N128")
          || !sv_isa(other, "Net::IP::XS::N128")) {
             RETVAL = 0;
         } else {
-            num1 = INT2PTR(n128_t*, SvIV(SvRV(self)));
-            num2 = INT2PTR(n128_t*, SvIV(SvRV(other)));
-            n128_sub(num1, num2);
+            Copy(SvPV(SvRV(self),  len), &num1, 1, n128_t);
+            Copy(SvPV(SvRV(other), len), &num2, 1, n128_t);
+            n128_sub(&num1, &num2);
+            sv_setpvn(SvRV(self), (const char*) &num1, 16);
             RETVAL = 1;
         }
     OUTPUT:
@@ -284,13 +302,15 @@ badd_ui(self, ui)
         SV *self
         unsigned int ui
     PREINIT:
-        n128_t *num;
+        STRLEN len;
+        n128_t num;
     CODE:
         if (!sv_isa(self,  "Net::IP::XS::N128")) {
             RETVAL = 0;
         } else {
-            num = INT2PTR(n128_t*, SvIV(SvRV(self)));
-            n128_add_ui(num, ui);
+            Copy(SvPV(SvRV(self), len), &num, 1, n128_t);
+            n128_add_ui(&num, ui);
+            sv_setpvn(SvRV(self), (const char*) &num, 16);
             RETVAL = 1;
         }
     OUTPUT:
@@ -300,13 +320,15 @@ int
 bnot(self)
         SV *self
     PREINIT:
-        n128_t *num;
+        STRLEN len;
+        n128_t num;
     CODE:
         if (!sv_isa(self,  "Net::IP::XS::N128")) {
             RETVAL = 0;
         } else {
-            num = INT2PTR(n128_t*, SvIV(SvRV(self)));
-            n128_com(num);
+            Copy(SvPV(SvRV(self), len), &num, 1, n128_t);
+            n128_com(&num);
+            sv_setpvn(SvRV(self), (const char*) &num, 16);
             RETVAL = 1;
         }
     OUTPUT:
@@ -317,13 +339,14 @@ tstbit(self, bit)
         SV *self
         int bit
     PREINIT:
-        n128_t *num;
+        STRLEN len;
+        n128_t num;
     CODE:
         if (!sv_isa(self,  "Net::IP::XS::N128")) {
             RETVAL = 0;
         } else {
-            num = INT2PTR(n128_t*, SvIV(SvRV(self)));
-            RETVAL = n128_tstbit(num, bit);
+            Copy(SvPV(SvRV(self), len), &num, 1, n128_t);
+            RETVAL = n128_tstbit(&num, bit);
         }
     OUTPUT:
         RETVAL
@@ -333,13 +356,15 @@ setbit(self, bit)
         SV *self
         int bit
     PREINIT:
-        n128_t *num;
+        STRLEN len;
+        n128_t num;
     CODE:
         if (!sv_isa(self,  "Net::IP::XS::N128")) {
             RETVAL = 0;
         } else {
-            num = INT2PTR(n128_t*, SvIV(SvRV(self)));
-            n128_setbit(num, bit);
+            Copy(SvPV(SvRV(self), len), &num, 1, n128_t);
+            n128_setbit(&num, bit);
+            sv_setpvn(SvRV(self), (const char*) &num, 16);
             RETVAL = 1;
         }
     OUTPUT:
@@ -350,13 +375,15 @@ clrbit(self, bit)
         SV *self
         int bit
     PREINIT:
-        n128_t *num;
+        STRLEN len;
+        n128_t num;
     CODE:
         if (!sv_isa(self,  "Net::IP::XS::N128")) {
             RETVAL = 0;
         } else {
-            num = INT2PTR(n128_t*, SvIV(SvRV(self)));
-            n128_clrbit(num, bit);
+            Copy(SvPV(SvRV(self), len), &num, 1, n128_t);
+            n128_clrbit(&num, bit);
+            sv_setpvn(SvRV(self), (const char*) &num, 16);
             RETVAL = 1;
         }
     OUTPUT:
@@ -366,14 +393,15 @@ SV *
 bstr(self)
         SV *self
     PREINIT:
-        n128_t *num;
+        STRLEN len;
+        n128_t num;
         char buf[40];
     CODE:
         if (!sv_isa(self, "Net::IP::XS::N128")) {
             RETVAL = &PL_sv_undef;
         } else {
-            num = INT2PTR(n128_t*, SvIV(SvRV(self)));
-            n128_print_dec(num, buf);
+            Copy(SvPV(SvRV(self), len), &num, 1, n128_t);
+            n128_print_dec(&num, buf);
             RETVAL = newSVpv(buf, 0);
         }
     OUTPUT:
@@ -383,30 +411,19 @@ SV *
 as_hex(self)
         SV *self
     PREINIT:
-        n128_t *num;
+        STRLEN len;
+        n128_t num;
         char buf[40];
     CODE:
         if (!sv_isa(self, "Net::IP::XS::N128")) {
             RETVAL = &PL_sv_undef;
         } else {
-            num = INT2PTR(n128_t*, SvIV(SvRV(self)));
-            n128_print_hex(num, buf);
+            Copy(SvPV(SvRV(self), len), &num, 1, n128_t);
+            n128_print_hex(&num, buf);
             RETVAL = newSVpv(buf, 0);
         }
     OUTPUT:
         RETVAL
-
-void
-DESTROY(self)
-        SV *self
-    PREINIT:
-        n128_t *num;
-    CODE:
-        if (sv_isa(self, "Net::IP::XS::N128")
-                && SvTYPE(SvRV(self)) == SVt_PVMG) {
-            num = INT2PTR(n128_t*, SvIV(SvRV(self)));
-            free(num);
-        }
 
 MODULE = Net::IP::XS        PACKAGE = Net::IP::XS
 
@@ -636,7 +653,7 @@ ip_iptobin(ip, ipversion)
         int res;
     CODE:
         res = NI_ip_iptobin(ip, ipversion, buf);
-        RETVAL = (res) ? newSVpv(buf, NI_iplengths(ipversion)) 
+        RETVAL = (res) ? newSVpv(buf, NI_iplengths(ipversion))
                        : &PL_sv_undef;
     OUTPUT:
         RETVAL
@@ -867,7 +884,7 @@ print(self)
         }
     OUTPUT:
         RETVAL
- 
+
 SV *
 size_str(self)
         SV *self

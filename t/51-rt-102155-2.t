@@ -18,7 +18,7 @@ BEGIN {
 use Net::IP::XS;
 
 my $i = Net::IP::XS::N128::new('10000');
-for my $i (1..10) {
+for my $j (1..10) {
     async {};
 }
 for my $thread (threads->list()) {
