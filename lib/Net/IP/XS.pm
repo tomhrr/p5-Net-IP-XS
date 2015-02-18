@@ -179,33 +179,6 @@ sub ip_auth
     return ($reg->inet_atoauth($ip));
 }
 
-sub STORABLE_freeze
-{
-    my ($self, $cloning) = @_;
-
-    my %copy = %{$self};
-    delete @copy{qw(xs_v6_ip0 xs_v6_ip1)};
-
-    return (1, \%copy);
-}
-
-sub STORABLE_thaw
-{
-    my ($self, $cloning, $dummy, $copy) = @_;
-
-    my @fields = keys %{$copy};
-    @{$self}{@fields} = @{$copy}{@fields};
-
-    if ($self->{'ipversion'} == 6) {
-        my $res = $self->set_ipv6_n128s();
-        if (!$res) {
-            die "Unable to generate internal IPv6 bignums.";
-        }
-    }
-    
-    return $copy;
-}
-
 1;
 
 __END__
