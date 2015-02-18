@@ -368,7 +368,7 @@ L<Net::IP|Net::IP>, L<IP::Authority|IP::Authority>.
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright (C) 2010-2014 Tom Harrison <tomhrr@cpan.org>.
+Copyright (C) 2010-2015 Tom Harrison <tomhrr@cpan.org>.
 
 Original inet_pton4 and inet_pton6 functions are copyright (C) 2006 
 Free Software Foundation.
