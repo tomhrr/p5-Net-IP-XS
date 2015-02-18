@@ -1,5 +1,11 @@
 Revision history for Net-IP-XS
 
+0.15    18 February 2015
+        - Improve the fixes done as part of 0.14.
+        - Fix a similar problem with the Net::IP::XS::N128 bindings.
+          This only affects tests, since the IPv6 functions use the
+          n128_t type directly.
+
 0.14    17 February 2015
         - Update internal n128 handling so that IP objects can be used
           in conjunction with threads.
