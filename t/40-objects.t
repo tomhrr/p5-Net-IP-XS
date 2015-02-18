@@ -9,7 +9,7 @@ use Net::IP::XS qw($IP_NO_OVERLAP $IP_PARTIAL_OVERLAP
 use IO::Capture::Stderr;
 my $c = IO::Capture::Stderr->new();
 
-use Test::More tests => 153;
+use Test::More tests => 154;
 use Scalar::Util qw(blessed);
 
 my $ip = Net::IP::XS->new('1.2.3.4', 4);
@@ -130,6 +130,8 @@ ok((blessed $ip and $ip->isa('Net::IP::XS')),
     'IP object is blessed and has correct package');
 is($ip->size(), '340282366920938463463374607431768211456',
     'Got correct size for IPv6');
+is($ip->size(), '340282366920938463463374607431768211456',
+    'Got correct size for IPv6 (2)');
 
 $ip = Net::IP::XS->new('0000:: - FFFF::', 6);
 ok((blessed $ip and $ip->isa('Net::IP::XS')),

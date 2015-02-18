@@ -1,7 +1,7 @@
 /*
 object.c - Functions for Net::IP::XS's object-oriented interface.
 
-Copyright (C) 2010-2014 Tom Harrison <tomhrr@cpan.org>
+Copyright (C) 2010-2015 Tom Harrison <tomhrr@cpan.org>
 Original inet_pton4, inet_pton6 are Copyright (C) 2006 Free Software
 Foundation.
 Original interface, and the auth and ip_auth functions, are Copyright
@@ -126,6 +126,8 @@ NI_set_ipv6_n128s(SV *ipo)
     n128_t ipv6_end;
     const char *binbuf1;
     const char *binbuf2;
+    SV *begin;
+    SV *end;
 
     HV_PV_GET_OR_RETURN(binbuf1, ipo, "binip",    5);
     HV_PV_GET_OR_RETURN(binbuf2, ipo, "last_bin", 8);
@@ -133,28 +135,20 @@ NI_set_ipv6_n128s(SV *ipo)
     n128_set_str_binary(&ipv6_begin, binbuf1, 128);
     n128_set_str_binary(&ipv6_end,   binbuf2, 128);
 
-    /* todo: Previously, this part of the code used malloc to allocate
+    /* Previously, this part of the code used malloc to allocate
      * n128_ts, which were then stored within the Net::IP::XS object.
      * This didn't work properly when threads were in use, because
      * those raw pointers were copied to each new thread, and
      * consequently freed by each thread in DESTROY.  This now stores
-     * the individual numbers within the object.  This,
-     * NI_get_begin_n128 and NI_get_end_n128 could do with some
-     * tidying (SvPV as per the ticket, and avoiding sprintf), and
-     * there are also a number of functions that copy the n128 values,
-     * which is no longer necessary.  See
+     * the raw data as PVs instead.  See
      * https://rt.cpan.org/Ticket/Display.html?id=102155 for more
      * information. */
 
-    hv_store((HV*) SvRV(ipo), "xs_v6_ip0_0", 11, newSVuv(ipv6_begin.nums[0]), 0);
-    hv_store((HV*) SvRV(ipo), "xs_v6_ip0_1", 11, newSVuv(ipv6_begin.nums[1]), 0);
-    hv_store((HV*) SvRV(ipo), "xs_v6_ip0_2", 11, newSVuv(ipv6_begin.nums[2]), 0);
-    hv_store((HV*) SvRV(ipo), "xs_v6_ip0_3", 11, newSVuv(ipv6_begin.nums[3]), 0);
+    begin = newSVpv((const char*) &ipv6_begin, 16);
+    end   = newSVpv((const char*) &ipv6_end,   16);
 
-    hv_store((HV*) SvRV(ipo), "xs_v6_ip1_0", 11, newSVuv(ipv6_end.nums[0]), 0);
-    hv_store((HV*) SvRV(ipo), "xs_v6_ip1_1", 11, newSVuv(ipv6_end.nums[1]), 0);
-    hv_store((HV*) SvRV(ipo), "xs_v6_ip1_2", 11, newSVuv(ipv6_end.nums[2]), 0);
-    hv_store((HV*) SvRV(ipo), "xs_v6_ip1_3", 11, newSVuv(ipv6_end.nums[3]), 0);
+    hv_store((HV*) SvRV(ipo), "xs_v6_ip0", 9, begin, 0);
+    hv_store((HV*) SvRV(ipo), "xs_v6_ip1", 9, end,   0);
 
     return 1;
 }
@@ -335,17 +329,15 @@ int
 NI_get_begin_n128(SV *ipo, n128_t *begin)
 {
     SV **ref;
-    int i;
-    char buf[12];
+    STRLEN len;
+    const char *raw_begin;
 
-    for (i = 0; i < 4; i++) {
-        sprintf(buf, "xs_v6_ip0_%d", i);
-        ref = hv_fetch((HV*) SvRV(ipo), buf, 11, 0);
-        if (!ref || !(*ref)) {
-            return 0;
-        }
-        begin->nums[i] = SvUV(*ref);
+    ref = hv_fetch((HV*) SvRV(ipo), "xs_v6_ip0", 9, 0);
+    if (!ref || !(*ref)) {
+        return 0;
     }
+    raw_begin = SvPV(*ref, len);
+    memcpy(begin, raw_begin, 16);
 
     return 1;
 }
@@ -362,17 +354,15 @@ int
 NI_get_end_n128(SV *ipo, n128_t *end)
 {
     SV **ref;
-    int i;
-    char buf[12];
+    STRLEN len;
+    const char *raw_end;
 
-    for (i = 0; i < 4; i++) {
-        sprintf(buf, "xs_v6_ip1_%d", i);
-        ref = hv_fetch((HV*) SvRV(ipo), buf, 11, 0);
-        if (!ref || !(*ref)) {
-            return 0;
-        }
-        end->nums[i] = SvUV(*ref);
+    ref = hv_fetch((HV*) SvRV(ipo), "xs_v6_ip1", 9, 0);
+    if (!ref || !(*ref)) {
+        return 0;
     }
+    raw_end = SvPV(*ref, len);
+    memcpy(end, raw_end, 16);
 
     return 1;
 }
@@ -546,7 +536,6 @@ NI_size_str_ipv6(SV *ipo, char *buf)
 {
     n128_t begin;
     n128_t end;
-    n128_t end_copy;
     int res;
 
     res = NI_get_n128s(ipo, &begin, &end);
@@ -560,10 +549,9 @@ NI_size_str_ipv6(SV *ipo, char *buf)
         return 1;
     }
 
-    n128_set(&end_copy, &end);
-    n128_sub(&end_copy, &begin);
-    n128_add_ui(&end_copy, 1);
-    n128_print_dec(&end_copy, buf);
+    n128_sub(&end, &begin);
+    n128_add_ui(&end, 1);
+    n128_print_dec(&end, buf);
 
     return 1;
 }
@@ -1192,10 +1180,6 @@ NI_aggregate_ipv4(SV *ipo1, SV *ipo2, char *buf)
 int
 NI_aggregate_ipv6(SV *ipo1, SV *ipo2, char *buf)
 {
-    n128_t b1_ref;
-    n128_t e1_ref;
-    n128_t b2_ref;
-    n128_t e2_ref;
     n128_t b1;
     n128_t e1;
     n128_t b2;
@@ -1204,17 +1188,12 @@ NI_aggregate_ipv6(SV *ipo1, SV *ipo2, char *buf)
     const char *ip1;
     const char *ip2;
 
-    if (!NI_get_n128s(ipo1, &b1_ref, &e1_ref)) {
+    if (!NI_get_n128s(ipo1, &b1, &e1)) {
         return 0;
     }
-    if (!NI_get_n128s(ipo2, &b2_ref, &e2_ref)) {
+    if (!NI_get_n128s(ipo2, &b2, &e2)) {
         return 0;
     }
-
-    n128_set(&b1, &b1_ref);
-    n128_set(&e1, &e1_ref);
-    n128_set(&b2, &b2_ref);
-    n128_set(&e2, &e2_ref);
 
     res = NI_ip_aggregate_ipv6(&b1, &e1, &b2, &e2, 6, buf);
 
