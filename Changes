@@ -1,5 +1,8 @@
 Revision history for Net-IP-XS
 
+0.16    9 November 2015
+        - Set array size correctly in NI_ip_is_ipv6 (RT #108605).
+
 0.15    18 February 2015
         - Improve the fixes done as part of 0.14.
         - Fix a similar problem with the Net::IP::XS::N128 bindings.
