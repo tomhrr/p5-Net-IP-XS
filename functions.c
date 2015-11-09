@@ -494,7 +494,7 @@ NI_ip_is_ipv6(const char *str)
     int i;
     int len;
     int octs = 0;
-    int octspots[7];
+    int octspots[8];
     int oct_index;
     const char *double_colon;
     const char *next_oct;
