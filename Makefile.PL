@@ -20,7 +20,6 @@ my $output = WriteMakefile(
     clean          => { FILES => '$(O_FILES)' },
     PREREQ_PM      => { 'Tie::Simple'         => 0,
                         'Math::BigInt'        => 0,
-                        'IP::Authority'       => 0,
                         # Test prereqs.
                         'Test::More'          => 0,
                         'IO::Capture::Stderr' => 0 },

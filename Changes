@@ -1,5 +1,8 @@
 Revision history for Net-IP-XS
 
+0.17    22 March 2016
+        - Make IP::Authority an optional dependency, as in Net::IP.
+
 0.16    9 November 2015
         - Set array size correctly in NI_ip_is_ipv6 (RT #108605).
 

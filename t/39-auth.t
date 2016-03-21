@@ -3,7 +3,16 @@
 use warnings;
 use strict;
 
-use Test::More tests => 8;
+use Test::More;
+
+BEGIN {
+    eval { require IP::Authority; };
+    if (my $error = $@) {
+        plan skip_all => "IP::Authority not available";
+    } else {
+        plan tests => 8;
+    }
+};
 
 use Net::IP::XS qw(ip_auth Error Errno);
 

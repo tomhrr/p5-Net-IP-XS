@@ -277,15 +277,21 @@ ok((not $ip), 'Failed on bad IP address');
 $ip = Net::IP::XS->new('FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF');
 ok($ip, 'Got new IP object');
 
-$ip = Net::IP::XS->new('202/8');
-is($ip->auth(), 'AP', 'Got correct auth information');
-is($ip->auth(), 'AP', 'Got correct auth information (cached)');
+eval { require IP::Authority };
+my $has_ip_authority = (not $@);
+SKIP: {
+    skip "IP::Authority not available", 5 unless $has_ip_authority;
 
-$ip = Net::IP::XS->new('2000::');
-is($ip->auth(), undef, 'Got undef for auth for IPv6 address');
-is($ip->error(), 'Cannot get auth information: Not an IPv4 address',
-    'Got correct error');
-is($ip->errno(), 308, 'Got correct errno');
+    $ip = Net::IP::XS->new('202/8');
+    is($ip->auth(), 'AP', 'Got correct auth information');
+    is($ip->auth(), 'AP', 'Got correct auth information (cached)');
+
+    $ip = Net::IP::XS->new('2000::');
+    is($ip->auth(), undef, 'Got undef for auth for IPv6 address');
+    is($ip->error(), 'Cannot get auth information: Not an IPv4 address',
+        'Got correct error');
+    is($ip->errno(), 308, 'Got correct errno');
+};
 
 $ip->{'ipversion'} = 0;
 my @prefixes = $ip->find_prefixes();
