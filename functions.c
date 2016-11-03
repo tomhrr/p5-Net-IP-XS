@@ -2043,8 +2043,14 @@ NI_ip_normalize_prefix_ipv4(unsigned long ip, char *slash,
         if (STRTOL_FAILED(clen, slash, endptr)) {
             return 0;
         }
-
-        addcst = (*endptr == ',');
+        if (*endptr == ',') {
+            addcst = 1;
+        } else if (endptr != (slash + strlen(slash))) {
+	    NI_set_Error_Errno(172, "Invalid prefix length /%s", slash);
+            return 0;
+        } else {
+            addcst = 0;
+        }
 
         res = NI_ip_check_prefix_ipv4(current, clen);
         if (!res) {
@@ -2099,8 +2105,14 @@ NI_ip_normalize_prefix_ipv6(n128_t *ip, char *slash,
         if (STRTOL_FAILED(clen, slash, endptr)) {
             return 0;
         }
-
-        addcst = (*endptr == ',');
+        if (*endptr == ',') {
+            addcst = 1;
+        } else if (endptr != (slash + strlen(slash))) {
+	    NI_set_Error_Errno(172, "Invalid prefix length /%s", slash);
+            return 0;
+        } else {
+            addcst = 0;
+        }
 
         res = NI_ip_check_prefix_ipv6(&current, clen);
         if (!res) {
