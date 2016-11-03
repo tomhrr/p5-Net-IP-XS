@@ -412,7 +412,7 @@ NI_ip_is_ipv4(const char *str)
     int len;
     int quads = 0;
     int quadspots[3];
-    int current_quad;
+    long current_quad;
     int cq_index;
     char *endptr;
 
@@ -2025,7 +2025,7 @@ NI_ip_normalize_prefix_ipv4(unsigned long ip, char *slash,
     unsigned long current;
     char *endptr = NULL;
     int res;
-    int clen   = 0;
+    long clen  = 0;
     int addcst = 0;
     char c;
 
@@ -2081,7 +2081,7 @@ NI_ip_normalize_prefix_ipv6(n128_t *ip, char *slash,
     n128_t current;
     char *endptr = NULL;
     int res;
-    int clen   = 0;
+    long clen  = 0;
     int addcst = 0;
     char c;
 
@@ -2681,7 +2681,7 @@ NI_ip_splitprefix(const char *prefix, char *ipbuf, int *lenbuf)
     const char *c;
     const char *slash;
     char *endptr;
-    int num;
+    long num;
     int len;
 
     c = slash = strchr(prefix, '/');
