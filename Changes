@@ -1,5 +1,9 @@
 Revision history for Net-IP-XS
 
+0.18    3 November 2016
+        - Fix strtol usage (RT #118605).
+        - Fix parsing problem in ip_normalize (RT #118593).
+
 0.17    22 March 2016
         - Make IP::Authority an optional dependency, as in Net::IP.
 
