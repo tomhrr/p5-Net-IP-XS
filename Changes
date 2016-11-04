@@ -1,5 +1,8 @@
 Revision history for Net-IP-XS
 
+0.19    5 November 2016
+        - Updated manifest.
+
 0.18    3 November 2016
         - Fix strtol usage (RT #118605).
         - Fix parsing problem in ip_normalize (RT #118593).
