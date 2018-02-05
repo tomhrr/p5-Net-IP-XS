@@ -208,10 +208,7 @@ NI_set(SV* ipo, char *data, int ipversion)
     HV_MY_DELETE(ipo, "is_prefix",  9);
 
     if (!ipversion) {
-        ipversion = NI_ip_get_version(buf1);
-        if (!ipversion) {
-            return 0;
-        }
+        ipversion = strchr(buf1, '.') ? 4 : 6;
     }
 
     iplen = NI_iplengths(ipversion);
@@ -236,7 +233,7 @@ NI_set(SV* ipo, char *data, int ipversion)
         HV_MY_STORE_PV(ipo, "last_bin", 8, binbuf1, iplen);
         binbuf2p = binbuf1;
     } else {
-        endipversion = NI_ip_get_version(buf2);
+        endipversion = strchr(buf2, '.') ? 4 : 6;
         if (!endipversion) {
             return 0;
         }
