@@ -47,16 +47,18 @@ sub parse_output
     return \%data;
 }
 
-my ($script_name) = $ARGV[0];
+my ($script_name, $iterations) = @ARGV;
 
-my @net_ip_output    = `sudo perf stat --all-user taskset -c 0 nice -n -20 perl $script_name --net-ip    2>&1`;
-my @net_ip_xs_output = `sudo perf stat --all-user taskset -c 0 nice -n -20 perl $script_name --net-ip-xs 2>&1`;
+my @net_ip_output    = `sudo perf stat --all-user taskset -c 0 nice -n -20 perl $script_name net-ip    $iterations 2>&1`;
+my @net_ip_xs_output = `sudo perf stat --all-user taskset -c 0 nice -n -20 perl $script_name net-ip-xs $iterations 2>&1`;
 my $net_ip_data      = parse_output(@net_ip_output);
 my $net_ip_xs_data   = parse_output(@net_ip_xs_output);
 
 my $final_data = {
-    'net-ip'    => $net_ip_data,
-    'net-ip-xs' => $net_ip_xs_data,
+    'name'       => $script_name,
+    'iterations' => $iterations,
+    'net-ip'     => $net_ip_data,
+    'net-ip-xs'  => $net_ip_xs_data,
 };
 
 print encode_json($final_data);
